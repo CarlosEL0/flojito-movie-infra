@@ -1,0 +1,32 @@
+# Archivo: soa-infra/docker-compose.yml
+version: '3.8'
+
+services:
+  db-postgres:
+    image: postgres:16-alpine # Imagen ligera de base de datos
+    container_name: soa_database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      # Mapea el puerto local al puerto interno del contenedor
+      - "${DB_LOCAL_PORT}:5432"
+    volumes:
+      # Persistencia de datos (para no perder info si se apaga el contenedor)
+      - postgres-data:/var/lib/postgresql/data
+      # Ejecuta automáticamente tu script SQL al inicializar la BD por primera vez
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - soa-network
+
+# Definición de la red virtual de Docker (Requisito de la rúbrica)
+networks:
+  soa-network:
+    driver: bridge
+    name: soa_internal_network
+
+# Definición del volumen nombrado
+volumes:
+  postgres-data:
